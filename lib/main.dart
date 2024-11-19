@@ -320,6 +320,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ],
         ),
       ),
+
+      ///
+      ///
+      ///
+      ///
+      ///
       body: PageView(
         controller: _pageController,
         children: [
@@ -352,7 +358,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     children: [
                       Spacer(),
                       Expanded(
+                        flex: 4,
                         child: PageView(
+                          physics:
+                              const NeverScrollableScrollPhysics(), // !!! TODO:
                           controller: PageController(),
                           children: [
                             GridView.count(
