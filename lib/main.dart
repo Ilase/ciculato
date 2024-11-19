@@ -28,7 +28,7 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final lightThemeData = ThemeData.light().copyWith(
       colorScheme: const ColorScheme.light().copyWith(
-        primary: Colors.indigo,
+        primary: Colors.black,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -58,7 +58,7 @@ class MyAppState extends State<MyApp> {
 
     final darkThemeData = ThemeData.dark().copyWith(
       colorScheme: const ColorScheme.dark().copyWith(
-        primary: Colors.indigo,
+        primary: Colors.white,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -326,61 +326,34 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ],
         ),
       ),
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-        color: _themeMode == ThemeMode.dark ? Colors.black : Colors.white,
-        child: GestureDetector(
-          onVerticalDragEnd: (details) {
-            if (details.primaryVelocity! > 0) {
-              setState(() {
-                _showAdvancedOperations = !_showAdvancedOperations;
-              });
-            }
-          },
-          onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity! > 0) {
-              _pageController.animateToPage(
-                2,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-            } else if (details.primaryVelocity! < 0) {
-              _pageController.animateToPage(
-                0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-            }
-          },
-          child: PageView(
-            controller: _pageController,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                height: _showAdvancedOperations
-                    ? MediaQuery.of(context).size.height * 0.8
-                    : MediaQuery.of(context).size.height * 0.6,
-                child: Column(
+      body: Column(
+        children: [
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24.0,
+                  horizontal: 12.0,
+                ),
+                child: Text(
+                  _output,
+                  style: const TextStyle(
+                    fontSize: 48.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 24.0,
-                        horizontal: 12.0,
-                      ),
-                      child: Text(
-                        _output,
-                        style: const TextStyle(
-                          fontSize: 48.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const Expanded(
-                      child: Divider(),
-                    ),
                     Column(
                       children: <Widget>[
                         Row(
@@ -471,45 +444,45 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     ),
                   ],
                 ),
-              ),
-              Column(
-                children: <Widget>[
-                  Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 24.0,
-                      horizontal: 12.0,
-                    ),
-                    child: const Text(
-                      "History",
-                      style: TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
+                Column(
+                  children: <Widget>[
+                    Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 24.0,
+                        horizontal: 12.0,
+                      ),
+                      child: const Text(
+                        "History",
+                        style: TextStyle(
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _history.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(
-                            _history[index],
-                            style: TextStyle(
-                              color: _themeMode == ThemeMode.dark
-                                  ? Colors.white
-                                  : Colors.black,
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _history.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(
+                              _history[index],
+                              style: TextStyle(
+                                color: _themeMode == ThemeMode.dark
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
