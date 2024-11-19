@@ -28,7 +28,7 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final lightThemeData = ThemeData.light().copyWith(
       colorScheme: const ColorScheme.light().copyWith(
-        primary: Colors.indigo,
+        primary: Colors.black,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -58,7 +58,7 @@ class MyAppState extends State<MyApp> {
 
     final darkThemeData = ThemeData.dark().copyWith(
       colorScheme: const ColorScheme.dark().copyWith(
-        primary: Colors.indigo,
+        primary: Colors.white,
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -377,9 +377,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    const Expanded(
-                      child: Divider(),
                     ),
                     Column(
                       children: <Widget>[
