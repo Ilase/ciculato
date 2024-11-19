@@ -16,7 +16,6 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
 
-  @override
   void changeTheme(ThemeMode themeMode) {
     if (!mounted) return;
     setState(() {
@@ -206,7 +205,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   Widget _buildButton(String buttonText) {
-    return Expanded(
+    return GridTile(
       child: OutlinedButton(
         onPressed: () => _buttonPressed(buttonText),
         child: Text(
@@ -218,7 +217,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   Widget _buildAdvancedButton(String buttonText) {
-    return Expanded(
+    return GridTile(
       child: OutlinedButton(
         onPressed: () => _advancedButtonPressed(buttonText),
         child: Text(
@@ -331,143 +330,60 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         curve: Curves.easeInOut,
         color: _themeMode == ThemeMode.dark ? Colors.black : Colors.white,
         child: GestureDetector(
-          onVerticalDragEnd: (details) {
+          onHorizontalDragEnd: (details) {
             if (details.primaryVelocity! > 0) {
               setState(() {
                 _showAdvancedOperations = !_showAdvancedOperations;
               });
             }
           },
-          onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity! > 0) {
-              _pageController.animateToPage(
-                2,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-            } else if (details.primaryVelocity! < 0) {
-              _pageController.animateToPage(
-                0,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-              );
-            }
-          },
           child: PageView(
             controller: _pageController,
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                height: _showAdvancedOperations
-                    ? MediaQuery.of(context).size.height * 0.8
-                    : MediaQuery.of(context).size.height * 0.6,
-                child: Column(
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 24.0,
-                        horizontal: 12.0,
-                      ),
-                      child: Text(
-                        _output,
-                        style: const TextStyle(
-                          fontSize: 48.0,
-                          fontWeight: FontWeight.bold,
-                        ),
+              Column(
+                children: <Widget>[
+                  Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 24.0,
+                      horizontal: 12.0,
+                    ),
+                    child: Text(
+                      _output,
+                      style: const TextStyle(
+                        fontSize: 48.0,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Column(
+                  ),
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 4,
                       children: <Widget>[
-                        Row(
-                          children: <Widget>[
-                            _buildButton("("),
-                            _buildButton(")"),
-                            Expanded(
-                              flex: 2,
-                              child: _buildButton("C"),
-                            ),
-                            _buildButton("/"),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            _buildButton("7"),
-                            _buildButton("8"),
-                            _buildButton("9"),
-                            _buildButton("*"),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            _buildButton("4"),
-                            _buildButton("5"),
-                            _buildButton("6"),
-                            _buildButton("-"),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            _buildButton("1"),
-                            _buildButton("2"),
-                            _buildButton("3"),
-                            _buildButton("+"),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
-                            _buildButton("."),
-                            _buildButton("0"),
-                            _buildButton("00"),
-                            _buildButton("="),
-                          ],
-                        ),
+                        _buildButton("("),
+                        _buildButton(")"),
+                        _buildButton("C"),
+                        _buildButton("/"),
+                        _buildButton("7"),
+                        _buildButton("8"),
+                        _buildButton("9"),
+                        _buildButton("*"),
+                        _buildButton("4"),
+                        _buildButton("5"),
+                        _buildButton("6"),
+                        _buildButton("-"),
+                        _buildButton("1"),
+                        _buildButton("2"),
+                        _buildButton("3"),
+                        _buildButton("+"),
+                        _buildButton("."),
+                        _buildButton("0"),
+                        _buildButton("00"),
+                        _buildButton("="),
                       ],
                     ),
-                    AnimatedOpacity(
-                      opacity: _showAdvancedOperations ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 500),
-                      child: _showAdvancedOperations
-                          ? SingleChildScrollView(
-                              child: Column(
-                                children: <Widget>[
-                                  Row(
-                                    children: <Widget>[
-                                      _buildAdvancedButton("^"),
-                                      _buildAdvancedButton("√"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      _buildAdvancedButton("sin"),
-                                      _buildAdvancedButton("cos"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      _buildAdvancedButton("tan"),
-                                      _buildAdvancedButton("log"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      _buildAdvancedButton("%"),
-                                      _buildAdvancedButton("π"),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: <Widget>[
-                                      _buildAdvancedButton("!"),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
-                          : Container(),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               Column(
                 children: <Widget>[
@@ -500,6 +416,40 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           ),
                         );
                       },
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                children: <Widget>[
+                  Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 24.0,
+                      horizontal: 12.0,
+                    ),
+                    child: Text(
+                      _output,
+                      style: const TextStyle(
+                        fontSize: 48.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 3,
+                      children: <Widget>[
+                        _buildAdvancedButton("^"),
+                        _buildAdvancedButton("√"),
+                        _buildAdvancedButton("sin"),
+                        _buildAdvancedButton("cos"),
+                        _buildAdvancedButton("tan"),
+                        _buildAdvancedButton("log"),
+                        _buildAdvancedButton("%"),
+                        _buildAdvancedButton("π"),
+                        _buildAdvancedButton("!"),
+                      ],
                     ),
                   ),
                 ],
