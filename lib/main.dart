@@ -16,7 +16,9 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
 
+  @override
   void changeTheme(ThemeMode themeMode) {
+    if (!mounted) return;
     setState(() {
       _themeMode = themeMode;
     });
@@ -24,50 +26,70 @@ class MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final lightThemeData = ThemeData.light().copyWith(
+      colorScheme: const ColorScheme.light().copyWith(
+        primary: Colors.indigo,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.white; // Белый кружочек, когда выбран
+          }
+          return Colors.grey; // Серый кружочек, когда не выбран
+        }),
+        trackColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.black.withOpacity(0.5); // Черный фон, когда выбран
+          }
+          return Colors.grey.withOpacity(0.5); // Серый фон, когда не выбран
+        }),
+      ),
+    );
+
+    final darkThemeData = ThemeData.dark().copyWith(
+      colorScheme: const ColorScheme.dark().copyWith(
+        primary: Colors.indigo,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.black; // Черный кружочек, когда выбран
+          }
+          return Colors.grey; // Серый кружочек, когда не выбран
+        }),
+        trackColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+          if (states.contains(MaterialState.selected)) {
+            return Colors.white.withOpacity(0.5); // Белый фон, когда выбран
+          }
+          return Colors.grey.withOpacity(0.5); // Серый фон, когда не выбран
+        }),
+      ),
+    );
+
     return MaterialApp(
       title: 'Calculator App',
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: Colors.white,
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.black),
-          bodyMedium: TextStyle(color: Colors.black),
-          bodySmall: TextStyle(color: Colors.black),
-          headlineSmall: TextStyle(color: Colors.black),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.black),
-            textStyle: const TextStyle(color: Colors.black),
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-          ),
-        ),
-        drawerTheme: DrawerThemeData(
-          backgroundColor: Colors.white,
-        ),
-      ),
-      darkTheme: ThemeData(
-        primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          bodySmall: TextStyle(color: Colors.white),
-          headlineSmall: TextStyle(color: Colors.white),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.white),
-            textStyle: const TextStyle(color: Colors.white),
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        drawerTheme: DrawerThemeData(
-          backgroundColor: Colors.black,
-        ),
-      ),
+      theme: lightThemeData,
+      darkTheme: darkThemeData,
       themeMode: _themeMode,
       home: CalculatorScreen(changeTheme: changeTheme),
     );
@@ -84,6 +106,14 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    // _themeMode = widget.changeTheme(_themeMode); // No need to set theme mode here
+  }
+
   String _output = "0";
   String _currentInput = "0";
   String _operator = "";
@@ -92,7 +122,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   final List<String> _history = [];
   bool _showAdvancedOperations = false;
   final PageController _pageController = PageController();
-  bool _isDarkMode = false;
+  final bool _isDarkMode = false;
 
   void _buttonPressed(String buttonText) {
     if (buttonText == "C") {
@@ -170,22 +200,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   void _toggleTheme(bool value) {
     setState(() {
-      _isDarkMode = value;
+      _themeMode = value ? ThemeMode.dark : ThemeMode.light;
     });
-    widget.changeTheme(value ? ThemeMode.dark : ThemeMode.light);
+    widget.changeTheme(_themeMode);
   }
 
   Widget _buildButton(String buttonText) {
     return Expanded(
-      child: SizedBox(
-        height:
-            80, // adjust the height as needed to make the buttons more square
-        child: OutlinedButton(
-          onPressed: () => _buttonPressed(buttonText),
-          child: Text(
-            buttonText,
-            style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-          ),
+      child: OutlinedButton(
+        onPressed: () => _buttonPressed(buttonText),
+        child: Text(
+          buttonText,
+          style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -193,15 +219,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   Widget _buildAdvancedButton(String buttonText) {
     return Expanded(
-      child: SizedBox(
-        height:
-            80, // adjust the height as needed to make the buttons more square
-        child: OutlinedButton(
-          onPressed: () => _advancedButtonPressed(buttonText),
-          child: Text(
-            buttonText,
-            style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
-          ),
+      child: OutlinedButton(
+        onPressed: () => _advancedButtonPressed(buttonText),
+        child: Text(
+          buttonText,
+          style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -212,6 +234,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ciculato'),
+        backgroundColor:
+            _themeMode == ThemeMode.dark ? Colors.black : Colors.white,
       ),
       drawer: Drawer(
         child: ListView(
@@ -219,13 +243,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
+                color:
+                    _themeMode == ThemeMode.dark ? Colors.black : Colors.white,
               ),
               child: Center(
                 child: Text(
                   'Ciculato',
                   style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge!.color,
+                    color: _themeMode == ThemeMode.dark
+                        ? Colors.white
+                        : Colors.black,
                     fontSize: 24,
                   ),
                 ),
@@ -236,7 +263,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               title: Text(
                 'About',
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge!.color,
+                  color: _themeMode == ThemeMode.dark
+                      ? Colors.white
+                      : Colors.black,
                 ),
               ),
               onTap: () {
@@ -244,6 +273,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
+                      backgroundColor: _themeMode == ThemeMode.light
+                          ? Colors.white
+                          : Colors.black,
                       title: const Text('About Ciculato'),
                       content: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -257,7 +289,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             },
                             child: const Text(
                               'GitHub: https://github.com/Ilase',
-                              style: TextStyle(color: Colors.blue),
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 114, 114, 114)),
                             ),
                           ),
                         ],
@@ -280,11 +313,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               title: Text(
                 'Dark Mode',
                 style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge!.color,
+                  color: _themeMode == ThemeMode.dark
+                      ? Colors.white
+                      : Colors.black,
                 ),
               ),
               trailing: Switch(
-                value: _isDarkMode,
+                value: _themeMode == ThemeMode.dark,
                 onChanged: _toggleTheme,
               ),
             ),
@@ -294,11 +329,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
-        color: _isDarkMode ? Colors.black : Colors.white,
+        color: _themeMode == ThemeMode.dark ? Colors.black : Colors.white,
         child: GestureDetector(
           onVerticalDragEnd: (details) {
             if (details.primaryVelocity! > 0) {
-              // Swipe up
               setState(() {
                 _showAdvancedOperations = !_showAdvancedOperations;
               });
@@ -306,14 +340,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           },
           onHorizontalDragEnd: (details) {
             if (details.primaryVelocity! > 0) {
-              // Swipe left
               _pageController.animateToPage(
                 2,
                 duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut,
               );
             } else if (details.primaryVelocity! < 0) {
-              // Swipe right
               _pageController.animateToPage(
                 0,
                 duration: const Duration(milliseconds: 500),
@@ -335,17 +367,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     Container(
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(
-                          vertical: 24.0, horizontal: 12.0),
+                        vertical: 24.0,
+                        horizontal: 12.0,
+                      ),
                       child: Text(
                         _output,
                         style: const TextStyle(
-                            fontSize: 48.0, fontWeight: FontWeight.bold),
+                          fontSize: 48.0,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    // removed the line in the middle of the calculator
-                    // const Expanded(
-                    //   child: Divider(),
-                    // ),
+                    const Expanded(
+                      child: Divider(),
+                    ),
                     Column(
                       children: <Widget>[
                         Row(
@@ -354,16 +389,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             _buildButton(")"),
                             Expanded(
                               flex: 2,
-                              child: OutlinedButton(
-                                onPressed: () => _buttonPressed("C"),
-                                child: const Text(
-                                  "C",
-                                  style: TextStyle(
-                                      fontSize: 24.0,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
+                              child: _buildButton("C"),
                             ),
+                            _buildButton("/"),
                           ],
                         ),
                         Row(
@@ -371,7 +399,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             _buildButton("7"),
                             _buildButton("8"),
                             _buildButton("9"),
-                            _buildButton("/"),
+                            _buildButton("*"),
                           ],
                         ),
                         Row(
@@ -379,7 +407,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             _buildButton("4"),
                             _buildButton("5"),
                             _buildButton("6"),
-                            _buildButton("*"),
+                            _buildButton("-"),
                           ],
                         ),
                         Row(
@@ -387,7 +415,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             _buildButton("1"),
                             _buildButton("2"),
                             _buildButton("3"),
-                            _buildButton("-"),
+                            _buildButton("+"),
                           ],
                         ),
                         Row(
@@ -395,11 +423,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             _buildButton("."),
                             _buildButton("0"),
                             _buildButton("00"),
-                            _buildButton("+"),
-                          ],
-                        ),
-                        Row(
-                          children: <Widget>[
                             _buildButton("="),
                           ],
                         ),
@@ -454,11 +477,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   Container(
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.symmetric(
-                        vertical: 24.0, horizontal: 12.0),
+                      vertical: 24.0,
+                      horizontal: 12.0,
+                    ),
                     child: const Text(
                       "History",
                       style: TextStyle(
-                          fontSize: 24.0, fontWeight: FontWeight.bold),
+                        fontSize: 24.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Expanded(
@@ -469,7 +496,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           title: Text(
                             _history[index],
                             style: TextStyle(
-                              color: _isDarkMode ? Colors.white : Colors.black,
+                              color: _themeMode == ThemeMode.dark
+                                  ? Colors.white
+                                  : Colors.black,
                             ),
                           ),
                         );
