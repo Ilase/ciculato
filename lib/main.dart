@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:math_expressions/math_expressions.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,6 +31,7 @@ class MyAppState extends State<MyApp> {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          shadowColor: Colors.black87,
           side: const BorderSide(color: Colors.black),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -106,10 +108,7 @@ class CalculatorScreen extends StatefulWidget {
 class _CalculatorScreenState extends State<CalculatorScreen> {
   ThemeMode _themeMode = ThemeMode.system;
   String _output = "0";
-  String _currentInput = "0";
-  String _operator = "";
-  double _num1 = 0;
-  double _num2 = 0;
+  String _currentInput = "";
   final List<String> _history = [];
   final PageController _pageController = PageController();
   bool _showAdvancedOperations = false;
@@ -118,71 +117,66 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     setState(() {
       if (buttonText == "C") {
         _output = "0";
-        _currentInput = "0";
-        _operator = "";
-        _num1 = 0;
-        _num2 = 0;
-      } else if (buttonText == "+" ||
-          buttonText == "-" ||
-          buttonText == "*" ||
-          buttonText == "/") {
-        _num1 = double.parse(_currentInput);
-        _operator = buttonText;
-        _currentInput = "0";
+        _currentInput = "";
       } else if (buttonText == "=") {
-        _num2 = double.parse(_currentInput);
-        if (_operator == "+") {
-          _currentInput = (_num1 + _num2).toString();
-        } else if (_operator == "-") {
-          _currentInput = (_num1 - _num2).toString();
-        } else if (_operator == "*") {
-          _currentInput = (_num1 * _num2).toString();
-        } else if (_operator == "/") {
-          _currentInput = (_num1 / _num2).toString();
+        try {
+          Parser p = Parser();
+          Expression exp = p.parse(_currentInput);
+          ContextModel cm = ContextModel();
+          double eval = exp.evaluate(EvaluationType.REAL, cm);
+          _output = eval.toString();
+          _history.add("$_currentInput = $_output");
+          _currentInput = _output;
+        } catch (e) {
+          _output = "Error";
         }
-        _history.add("$_num1 $_operator $_num2 = $_currentInput");
-        _num1 = 0;
-        _num2 = 0;
-        _operator = "";
       } else {
-        if (_currentInput == "0") {
-          _currentInput = buttonText;
+        if (_currentInput.isEmpty &&
+            (buttonText == "+" ||
+                buttonText == "-" ||
+                buttonText == "*" ||
+                buttonText == "/")) {
+          _currentInput = "0$buttonText";
         } else {
-          _currentInput = _currentInput + buttonText;
+          _currentInput += buttonText;
         }
+        _output = _currentInput;
       }
-      _output = _currentInput;
     });
   }
 
   void _advancedButtonPressed(String buttonText) {
     setState(() {
-      _num1 = double.parse(_currentInput);
+      double num1 = double.tryParse(_currentInput) ?? 0;
+      String result;
       if (buttonText == "^") {
-        _currentInput = (pow(_num1, 2)).toString();
+        result = (pow(num1, 2)).toString();
       } else if (buttonText == "√") {
-        _currentInput = (sqrt(_num1)).toString();
+        result = (sqrt(num1)).toString();
       } else if (buttonText == "sin") {
-        _currentInput = (sin(_num1)).toString();
+        result = (sin(num1)).toString();
       } else if (buttonText == "cos") {
-        _currentInput = (cos(_num1)).toString();
+        result = (cos(num1)).toString();
       } else if (buttonText == "tan") {
-        _currentInput = (tan(_num1)).toString();
+        result = (tan(num1)).toString();
       } else if (buttonText == "log") {
-        _currentInput = (log(_num1)).toString();
+        result = (log(num1)).toString();
       } else if (buttonText == "%") {
-        _currentInput = (_num1 / 100).toString();
+        result = (num1 / 100).toString();
       } else if (buttonText == "π") {
-        _currentInput = pi.toString();
+        result = pi.toString();
       } else if (buttonText == "!") {
-        int num = _num1.toInt();
+        int num = num1.toInt();
         int factorial = 1;
         for (int i = 1; i <= num; i++) {
           factorial *= i;
         }
-        _currentInput = factorial.toString();
+        result = factorial.toString();
+      } else {
+        result = _currentInput;
       }
-      _output = _currentInput;
+      _output = result;
+      _currentInput = result;
     });
   }
 
@@ -320,12 +314,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ],
         ),
       ),
-
-      ///
-      ///
-      ///
-      ///
-      ///
       body: PageView(
         controller: _pageController,
         children: [
@@ -360,11 +348,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       Expanded(
                         flex: 4,
                         child: PageView(
-                          physics:
-                              const NeverScrollableScrollPhysics(), // !!! TODO:
                           controller: PageController(),
                           children: [
                             GridView.count(
+                              physics: const NeverScrollableScrollPhysics(),
                               crossAxisCount: 4,
                               children: <Widget>[
                                 _buildButton("("),
